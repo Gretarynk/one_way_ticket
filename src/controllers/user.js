@@ -2,7 +2,7 @@ import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import UserModel from "../models/user.js";
-import { firstLetterCapital, validatePassword } from "../helpers/validators.js";
+import { firstLetterCapital, validatePassword,validateEmail } from "../helpers/validators.js";
 import {
   generateTokens,
   verifyRefreshToken,
@@ -16,6 +16,12 @@ const SIGN_UP = async (req, res) => {
       return res.status(400).json({
         message:
           "Password must be at least 6 characters long and contain at least one numeric digit",
+      });
+    }
+    if (!validateEmail(req.body.email)) {
+      return res.status(400).json({
+        message:
+          "Email must be valid",
       });
     }
     const salt = bcrypt.genSaltSync(10);
@@ -96,7 +102,9 @@ const GET_ALL_USERS = async (req, res) => {
 };
 const GET_USER_BY_ID = async (req, res) => {
   try {
-    const user = await UserModel.findOne({ id: req.params.id });
+    
+    const user = await UserModel.findOne({ _id: req.params.id });
+   console.log(user)
     if (!user) {
       return res
         .status(404)

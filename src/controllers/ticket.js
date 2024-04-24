@@ -21,7 +21,7 @@ const POST_CREATE_TICKET = async (req, res) => {
 
 const GET_ALL_TICKETS = async (req, res) => {
   try {
-    const tickets = await TicketModel.find();
+    const tickets = await TicketModel.find().sort({ arrivingLocation: 1 });
 
     return res.status(200).json({ message: "All tickets", tickets: tickets });
   } catch (err) {

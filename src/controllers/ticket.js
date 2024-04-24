@@ -81,21 +81,21 @@ const DELETE_TICKET_BY_ID = async (req, res) => {
 };
 const UPDATE_TICKET_BY_ID = async (req, res) => {
   try {
-    const updatedFlower = await FlowerModel.findOneAndUpdate(
+    const updatedTicket = await FlowerModel.findOneAndUpdate(
       { id: req.params.id },
       req.body,
       { new: true }
     );
-    if (!updatedFlower) {
+    if (!updatedTicket) {
       return res.status(401).json({
-        message: "Flower by such id not found",
-        flower: updatedFlower,
+        message: "Ticket by such id not found",
+        flower: updatedTicket,
       });
     }
-    return res.status(200).json({ message: "item info was updated" });
+    return res.status(200).json({ message: "ticket info was updated" });
   } catch (err) {
     console.log("HANDLED ERROR:", err);
-    return res.status(500).json({ message: "Error delete item by id" });
+    return res.status(500).json({ message: "Error update item by id" });
   }
 };
 

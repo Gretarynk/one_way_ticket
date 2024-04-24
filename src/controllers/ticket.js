@@ -81,7 +81,7 @@ const DELETE_TICKET_BY_ID = async (req, res) => {
 };
 const UPDATE_TICKET_BY_ID = async (req, res) => {
   try {
-    const updatedTicket = await FlowerModel.findOneAndUpdate(
+    const updatedTicket = await TicketModel.findOneAndUpdate(
       { id: req.params.id },
       req.body,
       { new: true }

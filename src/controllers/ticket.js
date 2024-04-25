@@ -32,6 +32,9 @@ const GET_ALL_TICKETS = async (req, res) => {
 const GET_TICKET_BY_ID = async (req, res) => {
   try {
     const ticket = await TicketModel.findOne({ id: req.params.id });
+    if(!ticket){
+      return res.status(401).json({message:`Ticket not founds with such id ${req.params.id} `})
+    }
 
     return res.status(200).json({ message: "ticket by id", ticket: ticket });
   } catch (err) {
@@ -55,12 +58,11 @@ const BUY_TICKET_BY_ID = async (req, res) => {
     //  console.log('user retrivied', user)
     await user.purchaseTicket(ticket._id, ticket.ticketPrice);
     const destination = ticket.arrivingLocation;
-    return res
-      .status(200)
-      .json({ message: `ticket to ${destination} was purchased successfully ` });
-  } catch (err) {
-    console.log("HANDLED ERROR:", err);
-    return res.status(500).json({ message: "Error get item by id" });
+    return res.status(200).json({
+      message: `ticket to ${destination} was purchased successfully `,
+    });
+  } catch (error) {
+    return res.status(400).json({ message: error.message });
   }
 };
 const DELETE_TICKET_BY_ID = async (req, res) => {
@@ -95,7 +97,7 @@ const UPDATE_TICKET_BY_ID = async (req, res) => {
     return res.status(200).json({ message: "ticket info was updated" });
   } catch (err) {
     console.log("HANDLED ERROR:", err);
-    return res.status(500).json({ message: "Error update item by id" });
+    return res.status(500).json({ message: "Error to update item by id" });
   }
 };
 

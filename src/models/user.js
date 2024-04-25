@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-import TicketModel from "./ticket.js";
+// import TicketModel from "./ticket.js";
 
 const userSchema = mongoose.Schema({
   _id: { type: String, required: true },
@@ -25,7 +25,7 @@ const userSchema = mongoose.Schema({
 
 userSchema.methods.purchaseTicket = async function (ticketId, ticketPrice) {
   if (this.walletBalance < ticketPrice) {
-    return "Not enough balance to purchase ticket";
+    throw new Error ("Not enough balance to purchase ticket");
   }
   this.purchasedTickets.push(ticketId);
   this.walletBalance -= ticketPrice;

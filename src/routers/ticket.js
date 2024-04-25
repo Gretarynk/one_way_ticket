@@ -9,7 +9,7 @@ import {
 } from "../controllers/ticket.js";
 import validation from "../middleware/validation.js";
 import ticketValidationSchema from "../validationSchema/ticket.js";
-import {auth,authForTicketPurchase} from "../middleware/auth.js"; 
+import {auth} from "../middleware/auth.js"; 
 const router = express.Router();
 
 router.get("/tickets",auth, GET_ALL_TICKETS);

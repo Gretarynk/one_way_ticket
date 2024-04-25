@@ -20,22 +20,5 @@ import jwt from "jsonwebtoken";
 }
 
 
- export const authForTicketPurchase = (req, res, next) => {
-    const token = req.headers.authorization;
-    if (!token) {
-        return res.status(401).json({ message: "Authorization failed: No token provided" });
-    }
 
-    try {
-        // Verify and decode the token
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // Attach the decoded token to the request
-        req.user = decoded;
-        
-        next();
-    } catch (err) {
-        return res.status(401).json({ message: "Authorization failed: Invalid token" });
-    }
-};
 

@@ -1,8 +1,12 @@
 import { v4 as uuidv4 } from "uuid";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
+// import jwt from "jsonwebtoken";
 import UserModel from "../models/user.js";
-import { firstLetterCapital, validatePassword,validateEmail } from "../helpers/validators.js";
+import {
+  firstLetterCapital,
+  validatePassword,
+  validateEmail,
+} from "../helpers/validators.js";
 import {
   generateTokens,
   verifyRefreshToken,
@@ -11,7 +15,7 @@ import {
 
 const SIGN_UP = async (req, res) => {
   try {
-    // console.log("Request body:", req.body);
+   
     if (!validatePassword(req.body.password)) {
       return res.status(400).json({
         message:
@@ -20,8 +24,7 @@ const SIGN_UP = async (req, res) => {
     }
     if (!validateEmail(req.body.email)) {
       return res.status(400).json({
-        message:
-          "Email must be valid",
+        message: "Email must be valid",
       });
     }
     const salt = bcrypt.genSaltSync(10);
@@ -29,13 +32,11 @@ const SIGN_UP = async (req, res) => {
 
     const user = new UserModel({
       _id: uuidv4(),
-      name: firstLetterCapital(req.body.name),
-      email: req.body.email,
-      password: hash,
-      purchasedTickets: [],
-      walletBalance: req.body.walletBalance,
+     
+      ...req.body,
     });
-
+    user.name = firstLetterCapital(user.name);
+    user.password = hash;
     const response = await user.save();
 
     const { jwt_token, refresh_token } = generateTokens(
@@ -52,13 +53,8 @@ const SIGN_UP = async (req, res) => {
       refresh_token: refresh_token,
     });
   } catch (err) {
-    if (err.name === "ValidationError" && err.errors.email) {
-      return res.status(400).json({ message: "Invalid email format" });
-      // biome-ignore lint/style/noUselessElse: <explanation>
-    } else {
-      console.log("HANDLED ERROR:", err);
-      return res.status(500).json({ message: "Error happened" });
-    }
+    console.log("HANDLED ERROR:", err);
+    return res.status(500).json({ message: "Error happened" });
   }
 };
 
@@ -102,10 +98,23 @@ const GET_ALL_USERS = async (req, res) => {
 };
 const GET_USER_BY_ID = async (req, res) => {
   try {
-    
-    const user = await UserModel.findOne({ _id: req.params.id });
-   console.log(user)
-    if (!user) {
+    const userId=req.params.id;
+    const user = await UserModel.aggregate([
+      {
+        $match: {
+          _id: userId,
+        },
+      },
+      {
+        $lookup: {
+          from: "tickets", // Collection name where tickets are stored
+          localField: "purchasedTickets",
+          foreignField: "_id",
+          as: "purchasedTicketsInfo",
+        },
+      },
+    ]);
+    if (!user || user.length===0 ) {
       return res
         .status(404)
         .json({ message: `user with ${req.params.id} not exist ` });
@@ -123,16 +132,14 @@ const GET_USERS_WITH_TICKETS = async (req, res) => {
     const usersWithTickets = await UserModel.find({
       purchasedTickets: { $exists: true, $ne: [] },
     });
-    console.log(usersWithTickets)
+    console.log(usersWithTickets);
     if (!usersWithTickets.length) {
       return res.status(404).json({ message: "There no users with tickets" });
     }
-    return res
-      .status(200)
-      .json({
-        message: "Users with purchased tickets",
-        users: usersWithTickets,
-      });
+    return res.status(200).json({
+      message: "Users with purchased tickets",
+      users: usersWithTickets,
+    });
   } catch (err) {
     console.log("HANDLED ERROR:", err);
     return res.status(500).json({ message: "Error happened to get all users" });
@@ -143,30 +150,76 @@ const GET_USERS_WITH_TICKETS_INFO = async (req, res) => {
     const usersWithTickets = await UserModel.aggregate([
       {
         $match: {
-          purchasedTickets: { $exists: true, $ne: [] }
-        }
+          purchasedTickets: { $exists: true, $ne: [] },
+        },
       },
       {
         $lookup: {
           from: "tickets", // Collection name where tickets are stored
           localField: "purchasedTickets",
           foreignField: "_id",
-          as: "purchasedTicketsInfo"
-        }
-      }
+          as: "purchasedTicketsInfo",
+        },
+      },
     ]);
 
     if (!usersWithTickets.length) {
-      return res.status(404).json({ message: "There are no users with purchased tickets" });
+      return res
+        .status(404)
+        .json({ message: "There are no users with purchased tickets" });
     }
 
     return res.status(200).json({
       message: "Users with purchased tickets",
-      users: usersWithTickets
+      users: usersWithTickets,
     });
   } catch (err) {
     console.log("HANDLED ERROR:", err);
-    return res.status(500).json({ message: "Error occurred while fetching users with tickets" });
+    return res
+      .status(500)
+      .json({ message: "Error occurred while fetching users with tickets" });
+  }
+};
+const GET_USERS_WITH_TICKETS_TO = async (req, res) => {
+  try {
+    const usersWithTickets = await UserModel.aggregate([
+      {
+        $match: {
+          purchasedTickets: { $exists: true, $ne: [] },
+        },
+      },
+      {
+        $lookup: {
+          from: "tickets", // Collection name where tickets are stored
+          localField: "purchasedTickets",
+          foreignField: "_id",
+          as: "purchasedTicketsInfo",
+        },
+      },{
+        $unwind: "$purchasedTicketsInfo",
+      },
+      {
+        $match: {
+          "purchasedTicketsInfo.arrivingLocation": req.params.arrivingLocation, // Add match condition for arriving location
+        },
+      },
+    ]);
+
+    if (!usersWithTickets.length) {
+      return res
+        .status(404)
+        .json({ message: `There are no users with purchased tickets to ${req.params.arrivingLocation}` });
+    }
+
+    return res.status(200).json({
+      message: `Users with purchased tickets to ${req.params.arrivingLocation} `,
+      users: usersWithTickets,
+    });
+  } catch (err) {
+    console.log("HANDLED ERROR:", err);
+    return res
+      .status(500)
+      .json({ message: "Error occurred while fetching users with tickets" });
   }
 };
 const NEW_REFRESH_TOKEN = async (req, res) => {
@@ -192,8 +245,6 @@ const NEW_REFRESH_TOKEN = async (req, res) => {
   }
 };
 
-
-
 export {
   SIGN_UP,
   LOG_IN,
@@ -202,4 +253,5 @@ export {
   GET_USERS_WITH_TICKETS,
   NEW_REFRESH_TOKEN,
   GET_USERS_WITH_TICKETS_INFO,
+  GET_USERS_WITH_TICKETS_TO,
 };

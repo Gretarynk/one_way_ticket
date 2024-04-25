@@ -10,11 +10,11 @@ import jwt from "jsonwebtoken";
         if(err){
             return res.status(401).json({message:"authorization failed"})
         }
-        // console.log('decoded token', decoded)
+    //  console.log('decoded token', decoded)
         req.body.userId=decoded.userId;
         // console.log('user id',req.body.userId)
         // req.user = decoded;
-        // console.log('requested user',req.user)
+        //  console.log('requested user',req.user)
         return next();
     });
 }

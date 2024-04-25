@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import UserModel from "./user.js";
+// import UserModel from "./user.js";
 
 const ticketSchema = mongoose.Schema({
   id: { type: String, required: true },
@@ -13,4 +13,4 @@ const ticketSchema = mongoose.Schema({
 
 export default mongoose.model("Ticket", ticketSchema);
 
-//   userId: { type: String, required: true },
+

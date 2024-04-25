@@ -15,7 +15,6 @@ import {
 
 const SIGN_UP = async (req, res) => {
   try {
-   
     if (!validatePassword(req.body.password)) {
       return res.status(400).json({
         message:
@@ -32,7 +31,7 @@ const SIGN_UP = async (req, res) => {
 
     const user = new UserModel({
       _id: uuidv4(),
-     
+
       ...req.body,
     });
     user.name = firstLetterCapital(user.name);
@@ -98,7 +97,7 @@ const GET_ALL_USERS = async (req, res) => {
 };
 const GET_USER_BY_ID = async (req, res) => {
   try {
-    const userId=req.params.id;
+    const userId = req.params.id;
     const user = await UserModel.aggregate([
       {
         $match: {
@@ -114,7 +113,7 @@ const GET_USER_BY_ID = async (req, res) => {
         },
       },
     ]);
-    if (!user || user.length===0 ) {
+    if (!user || user.length === 0) {
       return res
         .status(404)
         .json({ message: `user with ${req.params.id} not exist ` });
@@ -195,7 +194,8 @@ const GET_USERS_WITH_TICKETS_TO = async (req, res) => {
           foreignField: "_id",
           as: "purchasedTicketsInfo",
         },
-      },{
+      },
+      {
         $unwind: "$purchasedTicketsInfo",
       },
       {
@@ -208,7 +208,9 @@ const GET_USERS_WITH_TICKETS_TO = async (req, res) => {
     if (!usersWithTickets.length) {
       return res
         .status(404)
-        .json({ message: `There are no users with purchased tickets to ${req.params.arrivingLocation}` });
+        .json({
+          message: `There are no users with purchased tickets to ${req.params.arrivingLocation}`,
+        });
     }
 
     return res.status(200).json({
@@ -224,7 +226,7 @@ const GET_USERS_WITH_TICKETS_TO = async (req, res) => {
 };
 const NEW_REFRESH_TOKEN = async (req, res) => {
   try {
-    const { refresh_token } = req.body;
+    const { refresh_token } = req.headers;
 
     const decodedToken = verifyRefreshToken(refresh_token);
 
